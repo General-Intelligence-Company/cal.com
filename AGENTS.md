@@ -252,6 +252,15 @@ import { ProfileRepository } from "@calcom/platform-libraries";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 ```
 
+## Security Practices
+
+- **CodeQL**: Security scanning runs automatically on PRs and weekly via GitHub Actions
+- **Dependabot**: Automated dependency updates for npm packages and GitHub Actions
+- Never expose sensitive data in logs, errors, or API responses
+- Always validate and sanitize user inputs
+- Use parameterized queries (Prisma handles this automatically)
+- Review security alerts in the GitHub Security tab regularly
+
 ## PR Checklist
 
 - [ ] Title follows conventional commits: `feat(scope): description`
@@ -260,6 +269,7 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 - [ ] Relevant tests pass
 - [ ] Diff is small and focused (<500 lines, <10 files)
 - [ ] No secrets or API keys committed
+- [ ] No security vulnerabilities introduced (CodeQL will check)
 - [ ] UI strings added to translation files
 - [ ] Created as draft PR
 
