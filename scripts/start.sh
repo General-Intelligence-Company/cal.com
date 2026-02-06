@@ -10,4 +10,4 @@ npx prisma migrate deploy --schema /calcom/packages/prisma/schema.prisma
 npx ts-node --transpile-only /calcom/scripts/seed-app-store.ts
 export HOSTNAME="0.0.0.0"
 export PORT="${PORT:-3000}"
-exec yarn start -p ${PORT:-3000}
+exec yarn start
