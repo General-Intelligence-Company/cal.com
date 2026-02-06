@@ -19,7 +19,7 @@
     "copy-static": "turbo run copy-app-store-static",
     "copy-app-store-static": "node scripts/copy-app-store-static.js",
     "build": "next build && yarn sentry:release",
-    "start": "next start -p ${PORT:-3000}",
+    "start": "next start",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "lint:report": "biome lint --reporter json . > ../../lint-results/web.json",
