@@ -4,7 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import posthog from "posthog-js";
 
 import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
@@ -20,6 +20,15 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+
+type AvailabilityOverrideItem = {
+  id: number;
+  date: string;
+  type: string;
+  startTime: string;
+  endTime: string;
+  reason: string | null;
+};
 
 type AvailabilityListProps = {
   availabilities: RouterOutputs["viewer"]["availability"]["list"];
@@ -158,6 +167,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
               ))}
             </ul>
           </div>
+          <AvailabilityOverridesSection />
           <div className="text-default mb-16 mt-4 block text-center text-sm">
             {t("temporarily_out_of_office")}{" "}
             <Link href="settings/my-account/out-of-office" className="underline">
@@ -223,3 +233,73 @@ export const AvailabilityCTA = ({ canViewTeamAvailability }: AvailabilityCTAProp
     </div>
   );
 };
+
+function AvailabilityOverridesSection() {
+  const [overrides, setOverrides] = useState<AvailabilityOverrideItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { data: user } = useMeQuery();
+
+  useEffect(() => {
+    async function fetchOverrides() {
+      if (!user?.id) return;
+      try {
+        const response = await fetch(`/api/availability/overrides?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setOverrides(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.error("Error fetching overrides:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchOverrides();
+  }, [user?.id]);
+
+  return (
+    <div className="mt-6" data-testid="availability-overrides">
+      <h3 className="text-emphasis text-base font-semibold leading-6 mb-2">
+        Date-Specific Overrides
+      </h3>
+      <p className="text-subtle text-sm mb-4">
+        Block specific dates or time ranges without changing your recurring schedule.
+      </p>
+      {isLoading ? (
+        <div className="text-subtle text-sm">Loading overrides...</div>
+      ) : overrides.length === 0 ? (
+        <div className="border-subtle bg-default rounded-md border p-4">
+          <p className="text-subtle text-sm text-center">
+            No date-specific overrides yet. Use the API to create overrides for specific dates.
+          </p>
+        </div>
+      ) : (
+        <div className="border-subtle bg-default overflow-hidden rounded-md border">
+          <ul className="divide-subtle divide-y">
+            {overrides.map((override) => (
+              <li key={override.id} className="flex items-center justify-between px-4 py-3">
+                <div className="flex flex-col">
+                  <span className="text-emphasis text-sm font-medium">
+                    {override.date}
+                  </span>
+                  <span className="text-subtle text-xs">
+                    {override.startTime} - {override.endTime}
+                    {override.reason && ` · ${override.reason}`}
+                  </span>
+                </div>
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                    override.type === "block"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-blue-100 text-blue-700"
+                  }`}>
+                  {override.type === "block" ? "Blocked" : "Override"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}

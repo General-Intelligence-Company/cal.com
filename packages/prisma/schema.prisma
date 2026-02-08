@@ -418,8 +418,9 @@ model User {
   credentials         Credential[]
   teams               Membership[]
   bookings            Booking[]
-  schedules           Schedule[]
-  defaultScheduleId   Int?
+  schedules              Schedule[]
+  defaultScheduleId      Int?
+  availabilityOverrides  AvailabilityOverride[]
   selectedCalendars   SelectedCalendar[]
   completedOnboarding Boolean              @default(false)
   locale              String?
@@ -952,16 +953,17 @@ model Tracking {
 }
 
 model Schedule {
-  id                   Int            @id @default(autoincrement())
-  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId               Int
-  eventType            EventType[]
-  instantMeetingEvents EventType[]    @relation("InstantMeetingSchedule")
-  restrictionSchedule  EventType[]    @relation("restrictionSchedule")
-  name                 String
-  timeZone             String?
-  availability         Availability[]
-  Host                 Host[]
+  id                    Int                    @id @default(autoincrement())
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                Int
+  eventType             EventType[]
+  instantMeetingEvents  EventType[]            @relation("InstantMeetingSchedule")
+  restrictionSchedule   EventType[]            @relation("restrictionSchedule")
+  name                  String
+  timeZone              String?
+  availability          Availability[]
+  Host                  Host[]
+  availabilityOverrides AvailabilityOverride[]
 
   @@index([userId])
 }
@@ -982,6 +984,24 @@ model Availability {
   @@index([userId])
   @@index([eventTypeId])
   @@index([scheduleId])
+}
+
+model AvailabilityOverride {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  scheduleId Int?
+  date       DateTime  @db.Date
+  type       String    @default("block")
+  startTime  String
+  endTime    String
+  reason     String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id])
+
+  @@index([userId])
+  @@index([userId, date])
 }
 
 model SelectedCalendar {
