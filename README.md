@@ -1,3 +1,4 @@
+<!-- Preview environments are automatically created for every pull request. -->
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://github.com/calcom/cal.com">
